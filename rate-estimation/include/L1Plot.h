@@ -32,6 +32,7 @@
 #include "TCanvas.h"
 #include "TGraphAsymmErrors.h"
 #include "TProfile.h"
+#include "TTree.h"
 
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
@@ -165,6 +166,11 @@ class L1Plot
     std::map<std::string, std::vector<TLorentzVector> > recoEvent;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Plots ~~~~~
+    TTree* myTree;
+    int t_event;
+    int t_run;
+    int t_bit;
+    std::map<std::string, int> myseeds;
     std::map<std::string,TH1F*> hRate1F;
     std::map<std::string,TH2F*> hRate2F;
     std::map<std::string,TH1F*> huGt1F;

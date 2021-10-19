@@ -112,6 +112,7 @@ bool L1Menu2016::InitConfig()
   L1Config["doPrintBX"]      = 0;
   L1Config["doCompuGT"]      = 0;
   L1Config["maxEvent"]       = -1;
+  L1Config["minEvent"]       = -1;
   L1Config["SetMuonER"]      = -1;
   L1Config["SetNoPrescale"]  = 0;
   L1Config["IgnorePrescale"] = 0;
@@ -1141,7 +1142,10 @@ bool L1Menu2016::Loop()
     Long64_t ientry = LoadTree(i); 
     if (ientry < 0) break;
     GetEntry(i);
+
     if (L1Config["maxEvent"] != -1 && i > L1Config["maxEvent"]) break;
+
+    if (i < L1Config["minEvent"] || i > L1Config["maxEvent"]) continue;
 
     if (event_ != NULL )
     {
@@ -1214,8 +1218,9 @@ bool L1Menu2016::Loop()
     if (L1Config["doPrintPU"] && event_ != NULL)
       FillPileUpSec();
 
-    if (l1Plot != NULL)
+    if (l1Plot != NULL){
       l1Plot->RunPlot();
+    }  
 
     if (l1TnP != NULL)
       l1TnP->RunTnP();

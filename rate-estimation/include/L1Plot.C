@@ -83,7 +83,11 @@ L1Plot::operator = ( const L1Plot &other )
 bool L1Plot::BookuGtHistogram()
 {
   if (!doPlotuGt) return false;
-  
+
+  myTree = new TTree("mytree","");
+  myTree->Branch("event",&t_event,"event/I");
+  myTree->Branch("run",&t_run,"run/I");
+    
   // std::cout << " Booking uGT histograms" << std::endl;
 
   unsigned int maxBit=0;
@@ -100,11 +104,17 @@ bool L1Plot::BookuGtHistogram()
       {
 	nbit = std::stoi(base_match[1].str(), nullptr);
       }
-    // std::cout << "Triggers: " << name.first << "\t" << name.second << "\t" << nbit<< std::endl;    
+    std::cout << "Triggers: " << name.first << "\t" << name.second << "\t" << nbit<< std::endl;    
     
     if (nbit < 1001)
       {
 	muGtAlgoMap[l1algo]=nbit;
+	if( (l1algo.find("Mu") != string::npos || l1algo.find("Jet") != string::npos || l1algo.find("L1_ET") != string::npos || l1algo.find("L1_HTT") != string::npos || l1algo.find("Tau") != string::npos || 
+	l1algo.find("EG") != string::npos) && ( l1algo.find("Cosmics")==string::npos &&
+	l1algo.find("Bunch") == string::npos && l1algo.find("Open") == string::npos && l1algo.find("NotBptxOR") == string::npos && l1algo.find("CDC") == string::npos ) ){
+	myseeds[l1algo]=0;
+	myTree->Branch(l1algo.c_str(),&myseeds[l1algo],(l1algo+"/I").c_str());
+	}
 	if (nbit>maxBit) maxBit=nbit;
       }
   }
@@ -292,28 +302,35 @@ bool L1Plot::FilluGtHistogram()
 {
   if (!doPlotuGt) return false;
 
-
+  t_event = event_->event;
+  t_run = event_->run;
+  
   for (auto const & name: muGtAlgoMap) {
 
-    // std::string const & l1algo  = name.first;
+    std::string const & l1algo  = name.first;
     int const & bit  = name.second;
 
-    // std::cout << "Filling: " << l1algo << "\t" << name.second << std::endl;
+    //std::cout << "Filling: " << l1algo << "\t" << name.second << std::endl;
     bool uGTI  = l1uGT_->getAlgoDecisionInitial(bit);
     bool uGTF  = l1uGT_->getAlgoDecisionFinal(bit);
     if (uGTI){
       // int nbin=huGt1F["AlgoBits"]->GetNbinsX();      
       // int ibin=huGt1F["AlgoBits"]->GetXaxis()->FindBin(l1algo.c_str());      
-      // std::cout << "Filling: " << l1algo << "\t" << bit << "\t" << ibin << "\t" << nbin << std::endl;
+      //std::cout << "Filling: " << l1algo << "\t" << bit << "\t" << ibin << "\t" << nbin << std::endl;
       huGt1F["AlgoBitsI"]->Fill(float(bit));
       // huGt1F["AlgoBits"]->Fill(1.);
       // huGt2F["AlgoBitsVsBx"]->Fill(bit);
     }
     if (uGTF){
-      huGt1F["AlgoBitsF"]->Fill(float(bit));      
+      huGt1F["AlgoBitsF"]->Fill(float(bit)); 
     }
+    //std::cout << "Filling: " << l1algo << " " << uGTF << " " << uGTI << std::endl;
+    if( (l1algo.find("Mu") != string::npos || l1algo.find("Jet") != string::npos || l1algo.find("L1_ET") != string::npos || l1algo.find("L1_HTT") != string::npos || l1algo.find("Tau") != string::npos || 
+	l1algo.find("EG") != string::npos) && ( l1algo.find("Cosmics")==string::npos &&
+	l1algo.find("Bunch") == string::npos && l1algo.find("Open") == string::npos && l1algo.find("NotBptxOR") == string::npos && l1algo.find("CDC") == string::npos ) ){myseeds[l1algo] = uGTF;}    
   }
   
+  myTree->Fill();    
   return true;
 }       // -----  end of function L1Plot::FilluGtHistogram  -----
 
@@ -334,6 +351,7 @@ bool L1Plot::WriteuGtHistogram()
   {
     f.second->Write();
   }
+  myTree->Write();
   outfile->cd();
   return true;
 }       // -----  end of function L1Plot::WriteGtHistogram()  ----- 
